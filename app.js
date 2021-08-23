@@ -2,13 +2,22 @@ const express = require("express");
 const request = require("request");
 const mailchimp = require("@mailchimp/mailchimp_marketing");
 // const client = require("@mailchimp/mailchimp_marketing");
+const cookieParser = require("cookie-parser");
 const app = express();
+
+const adminRoutes = require("./admin");
 const port = 3000;
 
+// app.use
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static("public"));
 
+// Registering Admin Route
+app.use("/admin", adminRoutes);
+
+// Configuring Mailchimp settings
 app.use((req, res, next) => {
     mailchimp.setConfig({
         apiKey: "bdf4c41ee9fb39e2edfc63f1f377436f-us4",
@@ -17,11 +26,11 @@ app.use((req, res, next) => {
     next();
 });
 
-app.get("/", function (require, res) {
-    res.sendFile(__dirname + "/signup.html");
+app.get("/", (req, res, next) => {
+    res.sendFile(__dirname + "/index.html");
 });
 
-app.post("/", function (req, res) {
+app.post("/", (req, res) => {
     let firstName = req.body.fName;
     let lastName = req.body.lName;
     let email = req.body.email;
@@ -54,13 +63,13 @@ app.post("/", function (req, res) {
         body: jsonData,
     };
 
-    request(options, function (error, response, body) {
-        if (error) {
-            res.sendFile(__dirname + "/failure.html");
-        } else if (response.statusCode === 200) {
-            res.sendFile(__dirname + "/success.html");
-        } else res.sendFile(__dirname + "/failure.html");
-    });
+    // request(options, function (error, response, body) {
+    //     if (error) {
+    //         res.sendFile(__dirname + "/failure.html");
+    //     } else if (response.statusCode === 200) {
+    //         res.sendFile(__dirname + "/success.html");
+    //     } else res.sendFile(__dirname + "/failure.html");
+    // });
 });
 
 app.post("/failure", function (req, res) {

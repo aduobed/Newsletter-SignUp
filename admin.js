@@ -22,8 +22,11 @@ router.use((req, res, next) => {
 
 // Admin index route to sign-in -> GET
 router.get("/login", (req, res, next) => {
-    res.render("admin-sign-in");
+    res.render("admin-sign-in", {
+        pageTitle: "Admin Sign-In",
+    });
 });
+
 // Admin Route -> POST
 router.post("/login", (req, res, next) => {
     let clientPassword = req.body.password;
@@ -34,7 +37,9 @@ router.post("/login", (req, res, next) => {
     if (clientPassword != passCode) {
         res.json({ msg: "Wrong Password!" });
     } else {
-        res.redirect("/admin/dashboard");
+        res.redirect("/admin/dashboard", {
+            status: 200,
+        });
         // res.sendFile(__dirname + "/public/Admin/admin.html");
     }
     console.log(req.body);
@@ -45,15 +50,17 @@ router.post("/login", (req, res, next) => {
 router.get("/dashboard", async (req, res, next) => {
     const data = async () => {
         try {
-            // const response = await mailchimp.ping.get();
-            // const list = await mailchimp.lists.getAllLists();
-            // console.log(list);
+            const response = await mailchimp.ping.get();
+            const list = await mailchimp.lists.getAllLists();
+            console.log(list);
+            console.log(response);
             res.render("adminDashboard", {
-                system: "hi", //response.health_status,
-                list_id: "hi", //list.lists[0].id,
-                list_name: "hi", //list.lists[0].name,
-                date_created: "hi", //list.lists[0].date_created,
-                permission_reminder: "hi", //list.lists[0].permission_reminder,
+                system: response.health_status,
+                list_id: list.lists[0].id,
+                list_name: list.lists[0].name,
+                date_created: list.lists[0].date_created,
+                permission_reminder: list.lists[0].permission_reminder,
+                pageTitle: "Admin DashBoard",
             });
         } catch (error) {
             console.log(error);
@@ -72,6 +79,7 @@ router.get("/table", async (req, res, next) => {
             res.render("table", {
                 members: mem.members,
                 total_items: mem.total_items,
+                pageTitle: "All Contacts or Members",
             });
         } catch (error) {
             console.log(error);
@@ -83,7 +91,9 @@ router.get("/table", async (req, res, next) => {
 
 //Admin Add member to audience -> GET
 router.get("/memberAddForm", (req, res, next) => {
-    res.render("memberAddForm");
+    res.render("memberAddForm", {
+        pageTitle: "Add a Member",
+    });
 });
 
 //Admin Add member to audience -> GET
@@ -121,7 +131,9 @@ router.post("/memberAddForm", async (req, res, next) => {
         if (error) {
             res.json({ name: "Error" });
         } else if (response.statusCode === 200) {
-            res.render("memberAddForm");
+            res.render("memberAddForm", {
+                pageTitle: "Member Add Form",
+            });
         } else {
             res.json({ error: "There was an error" });
         }
@@ -129,7 +141,9 @@ router.post("/memberAddForm", async (req, res, next) => {
 });
 
 router.get("/memberInfo", (req, res, next) => {
-    res.render("memberInfo");
+    res.render("memberInfo", {
+        pageTitle: "Member Information",
+    });
 });
 
 router.post("/memberInfo", async (req, res, next) => {
@@ -159,7 +173,9 @@ router.post("/memberInfo", async (req, res, next) => {
 
 // Admin update Member Route -> GET
 router.get("/updateMemberInfo", (req, res, next) => {
-    res.render("updateMemberInfo");
+    res.render("updateMemberInfo", {
+        pageTitle: "Update a Member",
+    });
 });
 
 // Admin update Member Route -> PUT
@@ -195,7 +211,9 @@ router.post("/updateMemberInfo", (req, res, next) => {
 
 // Admin Delete Member Route -> GET
 router.get("/deleteMember", (req, res, next) => {
-    res.render("deleteMember");
+    res.render("deleteMember", {
+        pageTitle: "Delete a Member",
+    });
 });
 
 // Admin Delete Member Route -> GET
@@ -217,6 +235,30 @@ router.post("/deleteMember", (req, res, next) => {
         }
     };
     data();
+});
+
+// Admin All Audience Route -> GET
+router.get("/getAudience", (req, res, next) => {
+    res.render("getAudience", {
+        pageTitle: "Audience Info",
+    });
+});
+
+// Admin All Audience Route -> POST
+router.post("/getAudience", (req, res, next) => {
+    res.json({ response: "Sent Successfully" });
+});
+
+// Admin Get Current Campaign Route -> GET
+router.get("/viewCampaign", (req, res, next) => {
+    res.render("viewCampaign", {
+        pageTitle: "Current Campaign Info",
+    });
+});
+
+// Admin Get Current Campaign Route -> POST
+router.post("/viewCampaign", (req, res, next) => {
+    res.json({ response: "Sent Successfully" });
 });
 
 module.exports = router;

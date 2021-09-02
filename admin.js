@@ -1,264 +1,222 @@
 const md5 = require("md5");
-const request = require("request");
 const express = require("express");
-const mailchimp = require("@mailchimp/mailchimp_marketing");
-// const client = require("@mailchimp/mailchimp_marketing");
+const mailchimp = require("./src/configured-mailchimp");
+const { isUserSignedIn, signIn } = require("./src/firebase-utils.js");
+
+const { badGateway, subcribeUsersHandler } = require("./src/route-handlers");
+
 const router = express.Router();
 
+// Check if user is authenticated
 router.use((req, res, next) => {
-    mailchimp.setConfig({
-        apiKey: "bdf4c41ee9fb39e2edfc63f1f377436f-us4",
-        server: "us4",
-    });
-    next();
-});
-
-// Cookies
-router.use((req, res, next) => {
-    res.cookie("password", "1234");
-    res.cookie("email", "fire");
-    next();
+  // exclude for GET /login
+  if (req.path.indexOf("/login") < 0 && !isUserSignedIn()) {
+    return res.redirect("/admin/login");
+  }
+  next();
 });
 
 // Admin index route to sign-in -> GET
-router.get("/login", (req, res, next) => {
-    res.render("admin-sign-in", {
-        pageTitle: "Admin Sign-In",
-    });
+router.get("/login", (req, res) => {
+  if (isUserSignedIn()) {
+    return res.redirect("/admin/dashboard");
+  }
+
+  res.render("admin-sign-in", {
+    pageTitle: "Admin Sign-In",
+    error: req.query.error,
+  });
 });
 
 // Admin Route -> POST
-router.post("/login", (req, res, next) => {
-    let clientPassword = req.body.password;
-    let clientEmail = req.body.email;
-    const email = req.cookies.email;
-    const passCode = req.cookies.password;
-    console.log(passCode);
-    if (clientPassword != passCode) {
-        res.json({ msg: "Wrong Password!" });
-    } else {
-        res.redirect("/admin/dashboard", {
-            status: 200,
-        });
-        // res.sendFile(__dirname + "/public/Admin/admin.html");
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  const signInSuccessful = await signIn(email, password);
+
+  if (!signInSuccessful) {
+    res.redirect("/admin/login?error=InvalidCredentials");
+  } else {
+    res.redirect("/admin/dashboard");
+  }
+});
+
+router.get("/dashboard", async (_, res) => {
+  try {
+    const [response, listDetail] = await Promise.all([
+      mailchimp.ping.get(),
+      mailchimp.lists.getAllLists(),
+    ]);
+
+    if (!listDetail || !listDetail.lists || !listDetail.lists.length) {
+      throw new Error("No list found");
     }
-    console.log(req.body);
 
-    // res.json({ msg: "Logged in Successfully" });
+    const list = listDetail.lists[0];
+
+    res.render("adminDashboard", {
+      system: response.health_status,
+      list_id: list.id,
+      list_name: list.name,
+      date_created: list.date_created,
+      permission_reminder: list.permission_reminder,
+      pageTitle: "Admin DashBoard",
+    });
+  } catch (error) {
+    badGateway(res);
+  }
 });
 
-router.get("/dashboard", async (req, res, next) => {
-    const data = async () => {
-        try {
-            const response = await mailchimp.ping.get();
-            const list = await mailchimp.lists.getAllLists();
-            console.log(list);
-            console.log(response);
-            res.render("adminDashboard", {
-                system: response.health_status,
-                list_id: list.lists[0].id,
-                list_name: list.lists[0].name,
-                date_created: list.lists[0].date_created,
-                permission_reminder: list.lists[0].permission_reminder,
-                pageTitle: "Admin DashBoard",
-            });
-        } catch (error) {
-            console.log(error);
-        }
-    };
+router.get("/table", async (_, res) => {
+  try {
+    const mem = await mailchimp.lists.getListMembersInfo(
+      process.env.MAILCHIMP_LIST_ID
+    );
 
-    data();
-});
+    if (!mem) {
+      throw new Error("No members info found");
+    }
 
-router.get("/table", async (req, res, next) => {
-    const data = async () => {
-        try {
-            const mem = await mailchimp.lists.getListMembersInfo("6d9fcd41ae");
-            console.log(mem);
-
-            res.render("table", {
-                members: mem.members,
-                total_items: mem.total_items,
-                pageTitle: "All Contacts or Members",
-            });
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    data();
+    res.render("table", {
+      members: mem.members,
+      total_items: mem.total_items,
+      pageTitle: "All Contacts or Members",
+    });
+  } catch (error) {
+    badGateway(res);
+  }
 });
 
 //Admin Add member to audience -> GET
-router.get("/memberAddForm", (req, res, next) => {
-    res.render("memberAddForm", {
-        pageTitle: "Add a Member",
-    });
+router.get("/memberAddForm", (_, res) => {
+  res.render("memberAddForm", {
+    pageTitle: "Add a Member",
+  });
 });
 
 //Admin Add member to audience -> GET
-router.post("/memberAddForm", async (req, res, next) => {
-    const { fName, lName, email, phone } = req.body;
-    const listId = req.body.listId;
-    var data = {
-        members: [
-            {
-                email_address: email,
-                status: "subscribed",
-                merge_fields: {
-                    FNAME: fName,
-                    LNAME: lName,
-                    PHONE: phone,
-                },
-            },
-        ],
-    };
-
-    let jsonData = JSON.stringify(data);
-    console.log(jsonData);
-
-    let options = {
-        url: `https://us4.api.mailchimp.com/3.0/lists/${listId}`,
-        method: "POST",
-        headers: {
-            "Content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-            Authorization: "obed bdf4c41ee9fb39e2edfc63f1f377436f-us4",
-        },
-        body: jsonData,
-    };
-
-    request(options, function (error, response, body) {
-        if (error) {
-            res.json({ name: "Error" });
-        } else if (response.statusCode === 200) {
-            res.render("memberAddForm", {
-                pageTitle: "Member Add Form",
-            });
-        } else {
-            res.json({ error: "There was an error" });
-        }
-    });
+router.post("/memberAddForm", async (req, res) => {
+  subcribeUsersHandler(req, res);
 });
 
 router.get("/memberInfo", (req, res, next) => {
-    res.render("memberInfo", {
-        pageTitle: "Member Information",
-    });
+  res.render("memberInfo", {
+    pageTitle: "Member Information",
+  });
 });
 
-router.post("/memberInfo", async (req, res, next) => {
-    const listId = req.body.listId;
-    const email = req.body.email;
-    const subscriberHash = md5(email.toLowerCase());
+router.post("/memberInfo", async (req, res) => {
+  const listId = req.body.listId;
+  const email = req.body.email;
+  const subscriberHash = md5(email.toLowerCase());
 
-    const data = async () => {
-        try {
-            const response = await mailchimp.lists.getListMember(
-                listId,
-                subscriberHash
-            );
-            res.render("memberInfoTable", {
-                full_name: response.full_name,
-                email_address: response.email_address,
-                status: response.status,
-                phone_number: response.merge_fields.PHONE,
-                timestamp_opt: response.timestamp_opt,
-            });
-        } catch (error) {
-            res.send(error);
-        }
-    };
-    data();
+  try {
+    const response = await mailchimp.lists.getListMember(
+      listId,
+      subscriberHash
+    );
+
+    res.render("memberInfoTable", {
+      full_name: response.full_name,
+      email_address: response.email_address,
+      status: response.status,
+      phone_number: response.merge_fields.PHONE,
+      timestamp_opt: response.timestamp_opt,
+    });
+  } catch (error) {
+    badGateway(res);
+  }
 });
 
 // Admin update Member Route -> GET
-router.get("/updateMemberInfo", (req, res, next) => {
-    res.render("updateMemberInfo", {
-        pageTitle: "Update a Member",
-    });
+router.get("/updateMemberInfo", (req, res) => {
+  res.render("updateMemberInfo", {
+    pageTitle: "Update a Member",
+  });
 });
 
 // Admin update Member Route -> PUT
-router.post("/updateMemberInfo", (req, res, next) => {
-    const listId = req.body.listId;
-    const oldEmail = req.body.oldEmail;
-    const newEmail = req.body.newEmail;
-    const phone = req.body.phone;
-    const subscriberHash = md5(oldEmail.toLowerCase());
+router.post("/updateMemberInfo", async (req, res) => {
+  const listId = req.body.listId;
+  const oldEmail = req.body.oldEmail;
+  const newEmail = req.body.newEmail;
+  const phone = req.body.phone;
 
-    console.log(listId, oldEmail, newEmail, phone, subscriberHash);
+  if (!listId || !oldEmail || !newEmail || !phone) {
+    throw new Error("Invalid args passed to updateMemberInfo");
+  }
 
-    const data = async () => {
-        try {
-            const response = await mailchimp.lists.setListMember(
-                listId,
-                subscriberHash,
-                { email_address: `${newEmail}`, status_if_new: "subscribed" }
-            );
-            res.render("memberInfoTable", {
-                full_name: response.full_name,
-                email_address: response.email_address,
-                status: response.status,
-                phone_number: phone,
-                timestamp_opt: response.timestamp_opt,
-            });
-        } catch (error) {
-            res.send(error);
-        }
-    };
-    data();
+  const subscriberHash = md5(oldEmail.toLowerCase());
+
+  try {
+    const listMemberResponse = await mailchimp.lists.setListMember(
+      listId,
+      subscriberHash,
+      { email_address: `${newEmail}`, status_if_new: "subscribed" }
+    );
+
+    res.render("memberInfoTable", {
+      full_name: listMemberResponse.full_name,
+      email_address: listMemberResponse.email_address,
+      status: listMemberResponse.status,
+      phone_number: phone,
+      timestamp_opt: listMemberResponse.timestamp_opt,
+    });
+  } catch (error) {
+    badGateway(res);
+  }
 });
 
 // Admin Delete Member Route -> GET
 router.get("/deleteMember", (req, res, next) => {
-    res.render("deleteMember", {
-        pageTitle: "Delete a Member",
-    });
+  res.render("deleteMember", {
+    pageTitle: "Delete a Member",
+  });
 });
 
 // Admin Delete Member Route -> GET
-router.post("/deleteMember", (req, res, next) => {
-    const listId = req.body.listId;
-    const email = req.body.email;
-    const subscriberHash = md5(email.toLowerCase());
+router.post("/deleteMember", async (req, res) => {
+  const listId = req.body.listId;
+  const email = req.body.email;
 
-    const data = async () => {
-        try {
-            const response = await mailchimp.lists.deleteListMember(
-                listId,
-                subscriberHash
-            );
-            console.log(response);
-            res.render("memberDeletePage");
-        } catch (error) {
-            res.send(error);
-        }
-    };
-    data();
+  // TODO: Validate incoming props
+
+  const subscriberHash = md5(email.toLowerCase());
+
+  try {
+    const response = await mailchimp.lists.deleteListMember(
+      listId,
+      subscriberHash
+    );
+    console.log(response);
+    res.render("memberDeletePage");
+  } catch (error) {
+    badGateway();
+  }
 });
 
 // Admin All Audience Route -> GET
-router.get("/getAudience", (req, res, next) => {
-    res.render("getAudience", {
-        pageTitle: "Audience Info",
-    });
+router.get("/getAudience", (_, res) => {
+  res.render("getAudience", {
+    pageTitle: "Audience Info",
+  });
 });
 
 // Admin All Audience Route -> POST
-router.post("/getAudience", (req, res, next) => {
-    res.json({ response: "Sent Successfully" });
+router.post("/getAudience", () => {
+  throw new Error("Not implemented");
 });
 
 // Admin Get Current Campaign Route -> GET
-router.get("/viewCampaign", (req, res, next) => {
-    res.render("viewCampaign", {
-        pageTitle: "Current Campaign Info",
-    });
+router.get("/viewCampaign", (_, res) => {
+  res.render("viewCampaign", {
+    pageTitle: "Current Campaign Info",
+  });
 });
 
 // Admin Get Current Campaign Route -> POST
-router.post("/viewCampaign", (req, res, next) => {
-    res.json({ response: "Sent Successfully" });
+router.post("/viewCampaign", () => {
+  throw new Error("Not implemented");
 });
 
 module.exports = router;

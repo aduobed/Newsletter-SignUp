@@ -62,6 +62,12 @@
                 <div class="row">
                     <div class="col-sm-12">
                         <!-- Authentication card start -->
+                    
+                        <!-- Put an error message -->
+                        <% if (error) { %>
+                            <span style="color: red">Invalid username or password</span> 
+                            <br /> 
+                        <% } %>
 
                         <form
                             class="md-float-material form-material"

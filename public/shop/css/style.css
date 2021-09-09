@@ -2189,6 +2189,14 @@ textarea.input {
     margin: 15px 0px;
 }
 
+.alert {
+    text-align: center;
+    align-items: center;
+    height: 60px;
+    padding: 2rem;
+    margin: 1rem 40rem;
+}
+
 /*=========================================================
 	13 -> RESPONSIVE
 ===========================================================*/

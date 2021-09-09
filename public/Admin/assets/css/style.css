@@ -640,6 +640,15 @@ button.close {
     margin-bottom: 0;
 }
 
+.alert {
+    text-align: center;
+    align-items: center;
+    border-radius: 6px;
+    width: 50rem;
+    margin-top: -1.5rem;
+    margin-left: 18rem;
+}
+
 /**====== Notification css end ======**/
 
 /**  =====================

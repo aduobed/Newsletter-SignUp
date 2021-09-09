@@ -76,8 +76,7 @@
                                                         Members
                                                     </h5>
                                                     <span
-                                                        >All Contacts/Members
-                                                        List Information
+                                                        >All Subscribers from <%=days %>  day(s) ago
                                                     </span>
                                                     <div
                                                         class="
@@ -158,19 +157,17 @@
                                                                 <tr>
                                                                     <th>#</th>
                                                                     <th>
-                                                                        Full
-                                                                        Name
+                                                                      First Name 
+                                                                    </th>
+                                                                    <th>
+                                                                      Last Name 
                                                                     </th>
                                                                     <th>
                                                                         Email
                                                                         Address
                                                                     </th>
                                                                     <th>
-                                                                        Status
-                                                                    </th>
-                                                                    <th>
-                                                                        Email
-                                                                        Client
+                                                                        Phone Number
                                                                     </th>
                                                                 </tr>
                                                             </thead>
@@ -187,22 +184,22 @@
                                                                     </th>
                                                                     <td>
                                                                         <%=
-                                                                        members[i].full_name
+                                                                        members[i].firstName
                                                                         %>
                                                                     </td>
                                                                     <td>
                                                                         <%=
-                                                                        members[i].email_address
+                                                                        members[i].lastName
                                                                         %>
                                                                     </td>
                                                                     <td>
                                                                         <%=
-                                                                        members[i].status
+                                                                        members[i].email
                                                                         %>
                                                                     </td>
                                                                     <td>
                                                                         <%=
-                                                                        members[i].email_client
+                                                                        members[i].phone
                                                                         %>
                                                                     </td>
                                                                 </tr>

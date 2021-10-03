@@ -303,22 +303,23 @@ router.get("/createCampaign", (_, res) => {
 
 // Admin POST Current Campaign Route -> POST
 router.post("/createCampaign", async (req, res) => {
-    const {listId,campaignTitle,subject_line,from_name,reply_to,preview_text} = req.body;
+    const {listId,campaignTitle,subject_line,from_name,reply_to,message} = req.body;
     try {
-        //  const response = await mailchimp.campaigns.create({type: "regular", recipients : {
-        //     list_id: listId
-        //     },  settings : {
-        //     subject_line: subject_line,
-        //     preview_text: preview_text,
-        //     title: campaignTitle,
-        //     from_name: from_name,
-        //     reply_to: reply_to
-        //      }});
-        //      console.log(response);
-        const content = await mailchimp.campaigns.getContent("f10f564a6c");
-        console.log(content);
-            // const campaignSend = await mailchimp.campaigns.send(response.id);
-            //      console.log(campaignSend);
+         const response = await mailchimp.campaigns.create({type: "regular", recipients : {
+            list_id: listId
+            },  settings : {
+            subject_line: subject_line,
+            title: campaignTitle,
+            from_name: from_name,
+            reply_to: reply_to
+             }});
+
+        const setContent = await mailchimp.campaigns.setContent(response.id, {
+            html: `<!DOCTYPE html><html xmlns=http://www.w3.org/1999/xhtml><head><meta http-equiv=Content-Type content=\"text/html; charset=UTF-8\"><title>*|MC:SUBJECT|*</title><style type=text/css>body{background-color:#d0e4fe}</style><body leftmargin=0 marginwidth=0 topmargin=0 marginheight=0 offset=0>Hi Everyone, <br> ${message} </body></html`
+        }
+        );
+        console.log(setContent);
+            const campaignSend = await mailchimp.campaigns.send(response.id);
             res.render("campaignAdd", {
               pageTitle: "Added Campaign",
                  });

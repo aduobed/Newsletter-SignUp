@@ -137,6 +137,7 @@ router.get("/table", async (_, res) => {
             process.env.MAILCHIMP_LIST_ID,
             { "count": 1000 }
         );
+        
 
         if (!mem) {
             throw new Error("No members info found");
@@ -178,7 +179,7 @@ router.post(
     }
 );
 
-router.get("/memberInfo", (req, res, next) => {
+router.get("/memberInfo", (req, res) => {
     res.render("memberInfo", {
         pageTitle: "Member Information",
     });
@@ -277,15 +278,53 @@ router.post("/deleteMember", async (req, res) => {
 });
 
 // Admin Get Current Campaign Route -> GET
-router.get("/viewCampaign", (_, res) => {
-    res.render("viewCampaign", {
-        pageTitle: "Current Campaign Info",
+router.get("/viewCampaign", async (_, res) => {
+    try {
+        const response = await mailchimp.campaigns.list();
+        if (!response) {
+            throw new error("No Campaigns Found. Create a campaign on Mailchimp.")
+        }
+        res.render("viewCampaign", {
+            pageTitle: "Current Campaign Info",
+            campaigns: response.campaigns,
+            total_items: response.total_items
+        });
+    } catch (error) {
+        badGateway(res);        
+    }
+});
+
+// Admin Get Current Campaign Route -> GET
+router.get("/createCampaign", (_, res) => {
+    res.render("createCampaign", {
+        pageTitle: "Create a Campaign",
     });
 });
 
-// Admin Get Current Campaign Route -> POST
-router.post("/viewCampaign", () => {
-    throw new Error("Not implemented");
+// Admin POST Current Campaign Route -> POST
+router.post("/createCampaign", async (req, res) => {
+    const {listId,campaignTitle,subject_line,from_name,reply_to,preview_text} = req.body;
+    try {
+        //  const response = await mailchimp.campaigns.create({type: "regular", recipients : {
+        //     list_id: listId
+        //     },  settings : {
+        //     subject_line: subject_line,
+        //     preview_text: preview_text,
+        //     title: campaignTitle,
+        //     from_name: from_name,
+        //     reply_to: reply_to
+        //      }});
+        //      console.log(response);
+        const content = await mailchimp.campaigns.getContent("f10f564a6c");
+        console.log(content);
+            // const campaignSend = await mailchimp.campaigns.send(response.id);
+            //      console.log(campaignSend);
+            res.render("campaignAdd", {
+              pageTitle: "Added Campaign",
+                 });
+         } catch (error) {
+            console.log(error);
+    }
 });
 
 // Admin getQuery Route -> GET

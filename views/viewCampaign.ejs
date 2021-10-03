@@ -1,12 +1,224 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Document</title>
-    </head>
+<%- include('./includes/head.ejs') %>
+
     <body>
-        <h1>Campaign Page</h1>
+        <!-- Pre-loader start -->
+        <div class="theme-loader">
+            <div class="loader-track">
+                <div class="preloader-wrapper">
+                    <div class="spinner-layer spinner-blue">
+                        <div class="circle-clipper left">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="gap-patch">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="circle-clipper right">
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+                    <div class="spinner-layer spinner-red">
+                        <div class="circle-clipper left">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="gap-patch">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="circle-clipper right">
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+
+                    <div class="spinner-layer spinner-yellow">
+                        <div class="circle-clipper left">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="gap-patch">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="circle-clipper right">
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+
+                    <div class="spinner-layer spinner-green">
+                        <div class="circle-clipper left">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="gap-patch">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="circle-clipper right">
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Pre-loader end -->
+        <%- include('./includes/navigation.ejs') %>
+                        <div class="pcoded-content">
+                            <!-- Page-header start -->
+                            <%- include('./includes/pageHeader.ejs') %>
+                            <!-- Page-header end -->
+                            <div class="pcoded-inner-content">
+                                <!-- Main-body start -->
+                                <div class="main-body">
+                                    <div class="page-wrapper">
+                                        <!-- Page-body start -->
+                                        <div class="page-body">
+                                            <!-- Hover table card start -->
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>
+                                                        <code>
+                                                            <%= total_items %>
+                                                        </code>
+                                                        Members
+                                                    </h5>
+                                                    <span
+                                                        >All Contacts/Members
+                                                        List Information
+                                                    </span>
+                                                    <div
+                                                        class="
+                                                            card-header-right
+                                                        "
+                                                    >
+                                                        <ul
+                                                            class="
+                                                                list-unstyled
+                                                                card-option
+                                                            "
+                                                        >
+                                                            <li>
+                                                                <i
+                                                                    class="
+                                                                        fa
+                                                                        fa
+                                                                        fa-wrench
+                                                                        open-card-option
+                                                                    "
+                                                                ></i>
+                                                            </li>
+                                                            <li>
+                                                                <i
+                                                                    class="
+                                                                        fa
+                                                                        fa-window-maximize
+                                                                        full-card
+                                                                    "
+                                                                ></i>
+                                                            </li>
+                                                            <li>
+                                                                <i
+                                                                    class="
+                                                                        fa
+                                                                        fa-minus
+                                                                        minimize-card
+                                                                    "
+                                                                ></i>
+                                                            </li>
+                                                            <li>
+                                                                <i
+                                                                    class="
+                                                                        fa
+                                                                        fa-refresh
+                                                                        reload-card
+                                                                    "
+                                                                ></i>
+                                                            </li>
+                                                            <li>
+                                                                <i
+                                                                    class="
+                                                                        fa
+                                                                        fa-trash
+                                                                        close-card
+                                                                    "
+                                                                ></i>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="
+                                                        card-block
+                                                        table-border-style
+                                                    "
+                                                >
+                                                    <div
+                                                        class="table-responsive"
+                                                    >
+                                                        <table
+                                                            class="
+                                                                table
+                                                                table-hover
+                                                            "
+                                                        >
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>
+                                                                       id
+                                                                    </th>
+                                                                    <th>
+                                                                        campaign_type
+                                                                        
+                                                                    </th>
+                                                                    <th>
+                                                                        content_type
+                                                                    </th>
+                                                                    <th>
+                                                                        email_sent
+                                                                    </th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <% for (let i =
+                                                                0; i <
+                                                                campaigns.length;
+                                                                i++) { %>
+                                                                <tr>
+                                                                    <th
+                                                                        scope="row"
+                                                                    >
+                                                                        <%= campaigns[i].id %>
+                                                                    </th>
+                                                                    <td>
+                                                                        <%= campaigns[i].type
+                                                                        %>
+                                                                    </td>
+                                                                    <td>
+                                                                        <%=
+                                                                        campaigns[i].content_type
+                                                                        %>
+                                                                    </td>
+                                                                    <td>
+                                                                        <%=
+                                                                       campaigns[i]. emails_sent
+                                                                        %>
+                                                                    </td>
+                                                                </tr>
+                                                                <% } %>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Hover table card end -->
+                                        </div>
+                                        <!-- Page-body end -->
+                                    </div>
+                                </div>
+                                <!-- Main-body end -->
+
+                                <div id="styleSelector"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Required Jquery -->
+        <%- include('./includes/end.ejs') %>
     </body>
 </html>

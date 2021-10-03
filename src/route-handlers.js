@@ -1,8 +1,8 @@
 const { subscribeUser } = require("./api-utils");
 
 exports.badGateway = (res) => {
-    // TODO: Find a better approach to present this
-    res.send("Bad Gateway");
+    // Response for any catch error
+    res.send("Sorry Bad Gateway, Please refresh again and try few minutes later...");
 };
 
 exports.subscribeUsersHandler = (req, res) => {

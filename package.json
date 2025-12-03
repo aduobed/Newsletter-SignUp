@@ -13,7 +13,7 @@
   "dependencies": {
     "@firebase/app": "^0.7.0",
     "@firebase/auth": "^1.11.1",
-    "@firebase/firestore": "^3.13.0",
+    "@firebase/firestore": "^4.9.2",
     "@mailchimp/mailchimp_marketing": "^3.0.58",
     "@types/firebase": "^3.2.1",
     "body-parser": "^1.19.0",
